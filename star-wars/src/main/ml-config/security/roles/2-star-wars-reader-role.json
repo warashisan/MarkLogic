@@ -1,0 +1,10 @@
+{
+  "role-name" : "star-wars-reader",
+  "description" : "Can view documents, but not edit",
+  "role" : [ "star-wars-nobody" ],
+  "privilege" : [ {
+    "privilege-name" : "rest-reader",
+    "action" : "http://marklogic.com/xdmp/privileges/rest-reader",
+    "kind" : "execute"
+  } ]
+}
