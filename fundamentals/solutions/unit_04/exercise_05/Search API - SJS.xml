@@ -1,0 +1,93 @@
+<export><workspace name="Search API"><query name="Basic JSearch" focus="true" listorder="1" taborder="1" active="true" database="9283215535039809937" server="5337209431933715057" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * JSearch is a javascript-specific library that could be used to implement a
+ * google-like services/application. You can use cts.parse to convert your query
+ * string into the corresponding cts.query equivalent.
+ *
+ * Pagination can be implemented using the `slice` function of DocumentSearch.
+ */
+'use strict';
+
+var jsearch = require('/MarkLogic/jsearch');
+
+jsearch.documents()
+  .where(cts.parse("account* AND new york"))
+  .slice(0,2)
+  .result()
+</query><query name="Snippets and Facets" focus="false" listorder="2" taborder="3" active="true" database="4693478407245547279" server="10542459897476345829" database-name="star-wars-content" server-name="8100-star-wars" mode="javascript" optimize="1">/*
+ * Facets could be generated alongside your document search results. Your `where`
+ * would apply to both the facets and the document search.
+ *
+ * Though a little cumbersome compared to search API, you would need to configure
+ * your facet and bindings separately.
+ *
+ * Additionally notice how snippets are included as part of the result.
+ */
+'use strict';
+
+var jsearch = require('/MarkLogic/jsearch');
+
+let bindings =  {
+    weapon: cts.jsonPropertyReference('weapon', ['collation=http://marklogic.com/collation//S1/AS/T00BB']),
+    homeworld: cts.jsonPropertyReference('homeworld')
+  }
+let facets = [
+    jsearch.facet('weapon', cts.jsonPropertyReference('weapon', ['collation=http://marklogic.com/collation//S1/AS/T00BB'])),
+    jsearch.facet('homeworld', cts.jsonPropertyReference('homeworld'))
+  ]
+
+jsearch.facets(facets, jsearch.documents())
+  .where(cts.parse("weapon:'blaster pistol' OR homeworld:tatooine", bindings))
+  .result()
+</query><query name="Search REST API" focus="false" listorder="3" taborder="4" active="true" database="4693478407245547279" server="10542459897476345829" database-name="star-wars-content" server-name="8100-star-wars" mode="javascript" optimize="1">/*
+ * A similar library is available out of the box for your REST API App servers.
+ *
+ * NOTICE: Don't forget to properly encode your input!
+ */
+'use strict';
+
+xdmp.httpGet(
+  "http://localhost:8100/v1/search?q=" + xdmp.urlEncode('tatooine OR naboo'),
+   {
+     "authentication": {
+       "method" : "digest",
+       "username" : "star-wars-reader",
+       "password" : "star-wars-reader"
+     },
+     "headers" : {
+       "accept" : "application/json"
+     }
+   }
+)</query><query name="Facet and Constraints" focus="false" listorder="4" taborder="5" active="true" database="4693478407245547279" server="10542459897476345829" database-name="star-wars-content" server-name="8100-star-wars" mode="javascript" optimize="1">/*
+ * Query options are configured and can be used as `options` input.
+ * This supports the use of facets and other operators as part of
+ * your query string.
+ */
+'use strict';
+xdmp.httpGet(
+  "http://localhost:8100/v1/search"
+    + "?options=" + xdmp.urlEncode('characters')
+    + "&amp;q=" + xdmp.urlEncode('weapon:lightsaber OR naboo')
+  ,
+   {
+     "authentication": {
+       "method" : "digest",
+       "username" : "star-wars-reader",
+       "password" : "star-wars-reader"
+     },
+     "headers" : {
+       "accept" : "application/json"
+     }
+   }
+)</query><query name="By Example" focus="false" listorder="5" taborder="2" active="true" database="4693478407245547279" server="10542459897476345829" database-name="star-wars-content" server-name="8100-star-wars" mode="javascript" optimize="1">/*
+ * JSearch.byExample makes use of a provided object and constructs the query 
+ * using the properties/elements held within
+ */
+'use strict';
+
+var jsearch = require('/MarkLogic/jsearch');
+
+jsearch.documents()
+  .where(jsearch.byExample({homeworld:'naboo', gender: 'male'}))
+  .slice(0,2)
+  .result()
+</query></workspace></export>

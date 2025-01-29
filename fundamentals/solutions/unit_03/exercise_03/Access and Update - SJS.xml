@@ -1,0 +1,294 @@
+<export><workspace name="Access and Update"><query name="Basic retrieval" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Recap: Documents are identified using their URI
+ */
+'use strict';
+
+cts.doc('/sample-data-types.json')</query><query name="Accessing properties" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * XMLDocument, JSONDocument and BinaryDocument are special objects in SJS. 
+ * To access properties of JSONDocuments, you need to first access the `root` property.
+ * Alternatively, you could also use xpath expressions on JSONDocuments or XMLDocuments.
+ */
+'use strict';
+
+let doc = cts.doc('/sample-data-types.json')
+let result = {
+  'empty' : doc.decimal || null,
+  'decimal' : doc.root.decimal || null,
+  'xpath': doc.xpath('decimal')
+}
+result</query><query name="Converting to Mutable" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * XMLDocument, JSONDocument and BinaryDocument are special objects in SJS. 
+ * They are immutable. A mutable copy can be generated using .toObject()
+ */
+'use strict';
+
+let doc = cts.doc('/sample-data-types.json')
+let error = []
+try {
+  doc.root.decimal = 999.999
+} catch (e) { 
+  error.push(e)
+}
+
+let mutable = doc.toObject()
+try {
+  mutable.decimal = 999.999
+} catch (e) { 
+  error.push(e)
+}
+
+let result = {'doc':doc, 'mutable':mutable, error: error}
+result</query><query name="Data types" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * XMLDocument, JSONDocument and BinaryDocument are special objects in SJS. 
+ * Their properties are also of a special type. Review the equality checks below.
+ */
+'use strict';
+
+let doc = cts.doc('/sample-data-types.json')
+let mutable = doc.toObject()
+let result = {
+  doc: {
+    'string-strict': doc.root.string === 'value',
+    string: doc.root.string == 'value',
+    'decimal-strict': doc.root.decimal === 3.1416,
+    decimal: doc.root.decimal == 3.1416,
+    'boolean-strict': doc.root.boolean === true,
+    boolean: doc.root.boolean == true
+  },
+  mutable: {
+    string: mutable.string === 'value',
+    decimal: mutable.decimal === 3.1416,
+    boolean: mutable.boolean === true,
+  }
+}
+result</query><query name="Data types ext" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * XMLDocument, JSONDocument and BinaryDocument are special objects in SJS. 
+ * Properties of type xs.date, xs.dateTime and xs.time would be stored as 
+ * string in a particular format.
+ * Though they are comparable to strings, MarkLogic recommends the use of 
+ * built-in functions as shown below.
+ */
+'use strict';
+
+let doc = cts.doc('/sample-data-types.json')
+let mutable = doc.toObject()
+let result = {
+  doc: {
+    'date-strict-object': doc.root.date === new Date('2021-12-23-07:00'),
+    'date-object': doc.root.date == new Date('2021-12-23-07:00'),
+    'date-strict-ml': doc.root.date === xs.date('2021-12-23-07:00'),
+    'date-ml': doc.root.date == xs.date('2021-12-23-07:00'),
+    'date-strict-string': doc.root.date === '2021-12-23-07:00',
+    'date-string': doc.root.date == '2021-12-23-07:00'
+  },
+  mutable: {
+    'date-strict-object': mutable.date === new Date('2021-12-23-07:00'),
+    'date-object': mutable.date == new Date('2021-12-23-07:00'),
+    'date-strict-ml': mutable.date === xs.date('2021-12-23-07:00'),
+    'date-ml': mutable.date == xs.date('2021-12-23-07:00'),
+    'date-strict-string': mutable.date === '2021-12-23-07:00',
+    'date-string': mutable.date == '2021-12-23-07:00'
+  },
+  'date-comp': xs.date('2021-12-23-07:00').gt('2021-12-23-05:00')
+}
+result</query><query name="Document update" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Performing xdmp.documentInsert or xdmp.documentLoad towards the same URI
+ * counts as an update. Check the database's status page and see the number
+ * of deleted fragments increase as you repeatedly run this tab.
+ */
+'use strict';
+
+declareUpdate();
+
+xdmp.documentInsert(
+  '/sample-data-types.json', 
+  {
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : true,
+    "date" : xs.date("2021-12-23-07:00"),
+    "dateTime" : xs.dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs.time("12:34:47-07:00")
+  },
+  {
+    collections: "sample"
+  }
+)</query><query name="Node insert" focus="false" listorder="10" taborder="10" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Node-specific functions (xdmp.nodeReplace, xdmp.nodeInsertAfter, 
+ * xdmp.nodeInsertBefore, xdmp.nodeInsertChild) has the advantage 
+ * of updating the content while preserving any 
+ * metadata (collection, permissions, quality, etc.) of a document
+ *
+ * Click on explore after running this tab and see that the collection
+ * was not modified.
+ * 
+ * Click on the document to see the new property get added.
+ * 
+ * Use the previous tab to reset the document if desired.
+ *
+ * Click on Explore to see the changes
+ */
+'use strict';
+
+declareUpdate();
+
+let doc = cts.doc('/sample-data-types.json')
+let nodeToAdd = xdmp.toJSON({'duration' : xs.duration('P1DT170M52S')})
+xdmp.nodeInsertChild(
+  doc.root, 
+  nodeToAdd.xpath('*')
+)
+</query><query name="Node replace 2" focus="false" listorder="12" taborder="12" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * The result of cts.doc is special. They maintain reference to the source
+ * document/fragment.
+ *
+ * Node-specific functions (xdmp.nodeReplace, xdmp.nodeInsertAfter, 
+ * xdmp.nodeInsertBefore, xdmp.nodeInsertChild) require the use of these
+ * objects.
+ *
+ * The following examples would fail.
+ */
+'use strict';
+
+declareUpdate();
+
+let doc = cts.doc('/sample-data-types.json')
+let mutable = doc.toObject()
+let nonExisting = xdmp.toJSON({new: 'JSONDocument'})
+let nodeToAdd = xdmp.toJSON({'duration' : xs.duration('P1DT170M52S')})
+
+let errors = []
+try {
+  xdmp.nodeInsertChild(
+    mutable, 
+    nodeToAdd.xpath('*')
+  )  
+} catch (e) {
+  errors.push(e)
+}
+
+try {
+  xdmp.nodeInsertChild(
+    nonExisting, 
+    nodeToAdd.xpath('*')
+  )  
+} catch (e) {
+  errors.push(e)
+}
+
+errors</query><query name="Any change" focus="false" listorder="13" taborder="13" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * MarkLogic never updates documents in place. Each change will create an entire
+ * new version of the document.
+ *
+ * Check the database's status page and see the number of deleted fragments 
+ * increase as you repeatedly run this tab.
+ */
+'use strict';
+
+declareUpdate();
+
+xdmp.documentSetQuality('/sample-data-types.json', xdmp.random(10))</query><query name="REST - Retrieval" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Documents could also be retrieved using the Client REST API.
+ * Clients have been implemented for some languages. 
+ * Do note that these are community supported libraries.
+ *
+ * 1. Java: https://developer.marklogic.com/products/java/
+ * 2. NodeJS: https://developer.marklogic.com/products/node/
+ * 3. PHP: https://developer.marklogic.com/code/mlphp/
+ */
+'use strict';
+
+xdmp.httpGet(
+  'http://localhost:8000/v1/documents' 
+    + '?uri=/sample-data-types.json'
+  , 
+  { 
+    authentication : {
+      method : 'digest',
+      username : 'admin',
+      password : 'admin'
+    }
+  }
+)</query><query name="REST - Retrieval Meta" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Document metadata could also be retrieved by specifying the category.
+ */
+'use strict';
+
+xdmp.httpGet(
+  'http://localhost:8000/v1/documents' 
+    + '?uri=/sample-data-types.json'
+    + '&amp;category=metadata'
+  , 
+  { 
+    authentication : {
+      method : 'digest',
+      username : 'admin',
+      password : 'admin'
+    },
+    headers: {
+      Accept: "application/json"
+    }
+  }
+)</query><query name="Node replace" focus="false" listorder="11" taborder="11" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * Node-specific functions (xdmp.nodeReplace, xdmp.nodeInsertAfter, 
+ * xdmp.nodeInsertBefore, xdmp.nodeInsertChild) require the use of
+ * JSONDocument, or XMLDocument as returned by cts.doc. They maintain 
+ * reference to the source document/fragment.
+ *
+ * Click on Explore to see the changes.
+ */
+'use strict';
+
+declareUpdate();
+
+let doc = cts.doc('/sample-data-types.json')
+let nodeToReplace = doc.root.duration
+let replacement = xdmp.toJSON({'duration' : xs.duration('P2DT2M3S')})
+
+xdmp.nodeReplace(
+  nodeToReplace, 
+  replacement.xpath('*')
+)
+</query><query name="Basic retrieval MetaData" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">'use strict';
+
+let uri = '/employee/107.json'
+let metaData = {
+  permissions: xdmp.documentGetPermissions(uri),
+  collections: xdmp.documentGetCollections(uri),
+  quality: xdmp.documentGetQuality(uri)
+}
+metaData</query><query name="REST Update" focus="false" listorder="14" taborder="14" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Updating using PUT will update all content and/or metadata of a document.
+ * Try changing the collections from ["col1", "col2"] to ["col3", "col4"],
+ * Notice how "col1" and "col2" are lost. This behavior is closer to the 
+ * function xdmp.documentSetCollections, instead of xdmp.documentAddCollections
+ */
+'use strict';
+
+xdmp.httpPut(
+  'http://localhost:8000/v1/documents' 
+    + '?uri=/sample-data-types.json'
+    + '&amp;collection=col1'
+    + '&amp;collection=col2'
+  , 
+  { 
+    authentication : {
+      method : 'digest',
+      username : 'admin',
+      password : 'admin'
+    },
+    headers: {
+      'Content-type': 'application/json',
+      Accept: "application/json"
+    }
+  }, 
+  xdmp.toJSON({
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : true,
+    "date" : xs.date("2021-12-23-07:00"),
+    "dateTime" : xs.dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs.time("12:34:47-07:00"),
+    "duration" : xs.dayTimeDuration("P1DT4H4M7S")
+  })
+)</query></workspace></export>

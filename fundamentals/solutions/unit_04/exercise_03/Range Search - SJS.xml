@@ -1,0 +1,132 @@
+<export><workspace name="Range Indexes"><query name="Ranged Query" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Range Indexes are mainly used to answer inequality type of questions that 
+ * require the content's datatype to be known.
+ *
+ * Notice how a numeric index has been created on a property that contains
+ * string values. MarkLogic can do auto-type-casting as long as the values
+ * could be converted without errors.
+ */
+'use strict';
+
+cts.search(
+  cts.andQuery([
+    cts.jsonPropertyRangeQuery('office_number', "&gt;", 500),
+    cts.jsonPropertyRangeQuery('office_number', "&lt;", 600)
+  ])
+)</query><query name="Value extraction" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Another purpose of range indexes is to efficiently extract information
+ * without having to read content from disk.
+ */
+'use strict';
+
+let result = {
+  'values' : cts.values(
+    cts.jsonPropertyReference('last_name'),
+    null,
+    ['limit=10', 'frequency-order', 'descending']
+  ),
+  'documents read': xdmp.queryMeters().documents.length
+}
+result</query><query name="Facets" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * This is an example of how you could extend the previous code of value
+ * extraction to include the number of documents/fragments that contains that
+ * value.
+ *
+ * It is important to highlight that this entire process is resolved using
+ * range indexes and that no document is read from disk.
+ */
+'use strict';
+
+let values = cts.values(
+    cts.jsonPropertyReference('last_name'),
+    null,
+    ['limit=10', 'frequency-order', 'descending']
+  )
+let facet = [];
+for (let value of values) {
+  facet.push({
+    'value' : value,
+    'count' : cts.frequency(value)
+  })
+}
+
+let result = {
+  'facet' : facet,
+  'documents read': xdmp.queryMeters().documents.length
+}
+result</query><query name="Efficient Sort" focus="false" listorder="4" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Range index is also used for efficient sorting of results. By using the values
+ * available in memory, the candidates can be sorted in advance instead of having
+ * to read each and every document (`.toArray()`) and performing manual sort.
+ */
+'use strict';
+
+function bruteForceSort(){
+  return xdmp.invokeFunction(function(){
+    let items = cts.search(
+      cts.jsonPropertyValueQuery('dept_num', '4'), 
+      ['unfiltered']
+    )
+    let sorted = items.toArray().sort((a, b) =&gt; { 
+      return a.root.envelope.instance.last_name &gt; b.root.envelope.instance.last_name ? -1
+           : a.root.envelope.instance.last_name &lt; b.root.envelope.instance.last_name ? 1
+           : 0
+    })
+    return prepareSubset(Sequence.from(sorted.slice(0, 5)))
+  })
+}
+
+function efficientSort(){
+  return xdmp.invokeFunction(function(){
+    let items = cts.search(
+      cts.jsonPropertyValueQuery('dept_num', '4'),
+      [
+        cts.indexOrder(cts.jsonPropertyReference('last_name'), ['descending']),
+        'unfiltered'
+      ]
+    )
+    return prepareSubset(fn.subsequence(items, 1, 5))
+  })
+}
+
+function prepareSubset(subset){
+  let result = {
+    'subset' : []
+  }
+  for (let item of subset) {
+    result.subset.push(item.root.envelope.instance.last_name + ", " + item.root.envelope.instance.first_name)
+  }
+  result.stats = xdmp.queryMeters().documents.length
+  return result  
+}
+
+let result = {
+  'brute force': bruteForceSort(),
+  'efficient' : efficientSort()
+}
+result</query><query name="String Collation" focus="false" listorder="5" taborder="4" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="javascript" optimize="1">/*
+ * Collation is specified for each string type of range index. Different collation
+ * can have different effects on the values that get stored. Use the Query Builder
+ * button to build the string to use.
+ */
+'use strict';
+let result = {
+  'root collation' : cts.values(cts.jsonPropertyReference('weapon')),
+  'custom collation' : cts.values(cts.jsonPropertyReference('weapon', 'collation=http://marklogic.com/collation//S1/T00BB/AS'))
+}
+result
+</query><query name="Geospatial search" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Just like any index, geospatial information can be used together with other
+ * queries to reduce the scope of your query.
+ */
+'use strict';
+
+//Times Square, New York
+let target = cts.point(40.758896, -73.985130)
+cts.search(
+  cts.andQuery([
+    cts.jsonPropertyPairGeospatialQuery('instance', 'latitude', 'longitude', cts.circle(20, target)),
+    cts.jsonPropertyWordQuery('zip', '10459*')
+  ])
+)
+</query></workspace></export>

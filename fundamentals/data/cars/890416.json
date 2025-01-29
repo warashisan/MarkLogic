@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890416", 
+    "banner": "1990 Mercedes-Benz 300 SL", 
+    "make": "Mercedes-Benz", 
+    "model": "SL-Class", 
+    "year": 1990, 
+    "color": "black", 
+    "mileage": 102273, 
+    "price": 5999, 
+    "currency": "USD",
+    "description": "Tan leather interior, well maintained", 
+    "transmission": "automatic",
+    "city": "Olympia",
+    "province": "Washington",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 47.062061, 
+      "long": -122.880824
+    }
+  }
+}

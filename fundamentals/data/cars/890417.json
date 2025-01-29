@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890417", 
+    "banner": "1994 Suzuki Samurai", 
+    "make": "Suzuki", 
+    "model": "Samurai", 
+    "year": 1987, 
+    "color": "dark red", 
+    "mileage": 88812, 
+    "price": 8499, 
+    "currency": "Canadian",
+    "description": "Removable hard top, two soft tops included, locking trunk", 
+    "transmission": "manual",
+    "city": "Vancouver",
+    "province": "British Columbia",
+    "country": "Canada",
+    "location": 
+    {
+      "lat": 49.339003, 
+      "long": -123.038750
+    }
+  }
+}

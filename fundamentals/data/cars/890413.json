@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+    "id": "890413",
+    "banner": "2002 Jeep Wrangler Sport", 
+    "make": "Jeep", 
+    "model": "Wrangler", 
+    "year": 2002, 
+    "color": "black", 
+    "mileage": "86551", 
+    "price": 13000, 
+    "currency": "USD",
+    "description": "convertible 4WD sport, on/off-road tires, tow hooks, lock box", 
+    "transmission": "manual",    
+    "city": "San Francisco",
+    "province": "California",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 37.803614, 
+      "long": -122.429199
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "options": {
+    "additional-query": "<cts:collection-query xmlns:cts=\"http://marklogic.com/cts\"><cts:uri>characters</cts:uri></cts:collection-query>",
+    "search-option": ["unfiltered"],
+    "term": {
+      "term-option": ["diacritic-insensitive", "case-insensitive", "wildcarded"]
+    },
+    "page-length": 10,
+    "transform-results": {
+      "apply": "snippet",
+      "per-match-tokens": 200,
+      "max-matches": 5,
+      "max-snippet-chars": 300,
+      "preferred-matches": {
+        "json-property": ["bio"]
+      }
+    },
+    "constraint": [{
+      "name": "weapon",
+      "range": {
+        "type": "xs:string",
+        "collation": "http://marklogic.com/collation//S1/AS/T00BB",
+        "facet" : true,
+        "json-property": "weapon"
+      }
+    }, {
+      "name": "homeworld",
+      "range": {
+        "type": "xs:string",
+        "collation": "http://marklogic.com/collation//S1/AS/T00BB",
+        "facet" : true,
+        "json-property": "homeworld"
+      }
+    }, {
+      "name": "height",
+      "range": {
+        "type": "xs:decimal",
+        "facet" : true,
+        "json-property": "height",
+        "bucket": [{
+          "name": "short",
+          "label": "short",
+          "lt": 1.5
+        }, {
+          "name": "average",
+          "label": "average",
+          "ge": 1.5,
+          "lt": 1.9
+        }, {
+          "name": "tall",
+          "label": "tall",
+          "ge": 1.9
+        }]
+      }
+    }]
+  }
+}

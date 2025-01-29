@@ -1,0 +1,66 @@
+<export><workspace name="Access Control"><query name="No permission" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * We are currently logged in as admin with admin role (see upper right)
+ * This call allows us to simulate a script using a different user, e.g. nobody
+ * Notice how this returns empty. Click on explore to see the permissions of
+ * the specified file, i.e. none.
+ */
+'use strict';
+
+xdmp.invokeFunction(
+  function(){
+    return cts.doc('/sample-data-types.json')
+  }
+  , {
+    userId : xdmp.user('nobody')
+  }
+)</query><query name="Identify role names" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Review the list of users that were created during unit 1. 
+ * Notice how the user `star-wars-reader` has the role `rest-reader`
+ * inherited by the role `star-wars-reader`
+ *
+ * This programatically displays the roles inherited.
+ * Try changing the user to `star-wars-admin`.
+ */
+'use strict';
+
+let userRoles = xdmp.userRoles('star-wars-reader')
+let roleNames = [];
+for (let roleId of userRoles) {
+  roleNames.push(xdmp.roleName(roleId))
+}
+roleNames</query><query name="Restrict update" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Review the permissions of the specified document by clicking on "Explore"
+ *
+ * Notice how `star-wars-reader` is not allowed for update. So the transaction
+ * below would fail. Though not as obvious, the transaction would also fail
+ * due to not having the update permission to the target document.
+ *
+ * Try updating the user to star-wars-admin to see it succeed.
+ */
+'use strict';
+
+xdmp.invokeFunction(
+  function(){
+    declareUpdate();
+    
+    xdmp.documentSetQuality('/employee/164.json', 10)
+  }
+  , {
+    userId : xdmp.user('star-wars-reader')
+  }
+)</query><query name="Star wars user" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="javascript" optimize="1">/*
+ * The current content of our application does not have permissions set.
+ * Our user, therefore, is unable to see the documents. Proceed with the
+ * CoRB2 exercise to efficeintly set the permissions and come back to 
+ * this tab to see access get granted.
+ */
+'use strict';
+
+xdmp.invokeFunction(
+  function(){
+    return cts.doc('/characters/darthsidious.json')
+  }
+  , {
+    userId : xdmp.user('star-wars-reader')
+  }
+)</query></workspace></export>

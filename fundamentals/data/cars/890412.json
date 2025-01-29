@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+    "id": "890412",
+    "banner": "2008 BMW Z4 Roadster", 
+    "make": "BMW", 
+    "model": "Z4", 
+    "year": 2008, 
+    "color": "black", 
+    "mileage": 60422, 
+    "price": 14999, 
+    "currency": "USD",
+    "description": "Beautiful convertible BMW Z4 with leather heated seats, and 6-speed manual transmission", 
+    "transmission": "manual",
+    "city": "Seattle",
+    "province": "Washington",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 47.637153, 
+      "long": -122.300444
+    }
+  }
+}

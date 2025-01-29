@@ -1,0 +1,10 @@
+{
+  "server-name": "%%odbcPort%%-%%mlAppName%%-odbc",
+  "group-name": "Default",
+  "server-type": "odbc",
+  "root": "/",
+  "enabled": true,
+  "port": %%odbcPort%%,
+  "content-database": "%%DATABASE%%",
+  "modules-database": "%%MODULES_DATABASE%%"
+}

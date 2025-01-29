@@ -1,0 +1,277 @@
+<export><workspace name="TDE, SQL, Optic"><query name="Validate your template" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * MarkLogic provides a function to validate your planned template.
+ * This mainly focuses on the property tree and not on the actual
+ * property values.
+ *
+ * Notice how dob and hire_date are manipulated to fit the expected
+ * format of dates. More information about available template functions
+ * is available here: 
+ * https://docs.marklogic.com/guide/app-dev/TDE#id_99178
+ */
+'use strict';
+
+let template = xdmp.toJSON({
+  "template": {
+    "context": "/envelope/instance",
+    "collections": ["employee"],
+    "rows": [{
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": [{
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": true
+          }, {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": true
+          }
+        ]
+      }
+    ]
+  }
+})
+tde.validate([template])</query><query name="Test your template" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Make use of the `tde.nodeDataExtract` function to check out
+ * how your rows would eventually get filled.
+ *
+ * Notice that your "dob" and "hire_date" have been curated to
+ * support search using date. MarkLogic requires this format.
+ */
+'use strict';
+
+let template = xdmp.toJSON({
+  "template": {
+    "context": "/envelope/instance",
+    "collections": ["employee"],
+    "rows": [{
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": [{
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": true
+          }, {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": true
+          }
+        ]
+      }
+    ]
+  }
+})
+tde.nodeDataExtract([cts.doc('/employee/107.json')], [template])</query><query name="Create your template" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * When you are happy with the extraction, you can proceed to 
+ * create your template. This template gets stored in the 
+ * configured schema database for your content.
+ */
+'use strict';
+
+declareUpdate();
+const tde = require("/MarkLogic/tde.xqy");
+
+let template = xdmp.toJSON({
+  "template": {
+    "context": "/envelope/instance",
+    "collections": ["employee"],
+    "rows": [{
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": [{
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": true
+          }, {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": true
+          }, {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": true
+          }
+        ]
+      }
+    ]
+  }
+})
+tde.templateInsert('/employee.json', template)</query><query name="Review your template" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="Schemas" server-name="App-Services" mode="javascript" optimize="1">/*
+ * As previously mentioned, your template gets stored in the configured schema
+ * database for your content. Click on explore to see that your template is
+ * also tagged with a specific collection.
+ */
+'use strict';
+
+let uri = '/employee.json'
+let result = [
+  xdmp.documentGetCollections(uri),
+  cts.doc(uri)
+]
+result</query><query name="Run in SQL mode" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="sql" optimize="1">-- MarkLogic supports SQL-92
+-- There are also several functions that are specific to MarkLogic
+-- see: https://docs.marklogic.com/sql
+
+select datediff('year', dob, now()) as age, employee.*
+from employee
+where dob &gt;= '1980-01-01'
+and dob &lt; '1990-01-01'
+order by dob desc
+limit 20</query><query name="SQL via Optic" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * The Optic API allows you to run your SQL and incorporate the results with 
+ * your other routines. 
+ *
+ * To help prevent SQL injection, you could use placeholders using the `@`
+ * and supply your bindings as part of the call to `.result()` as shown below.
+ */
+'use strict';
+const op = require('/MarkLogic/optic');
+
+op.fromSQL(`
+  select datediff('year', dob, now()) as age, employee.*
+  from employee
+  where dob &gt;= @start
+  and dob &lt; @end
+  order by dob desc
+  limit @limit
+`)
+.result(null, {
+  'start': '1980-01-01',
+  'end': '1990-01-01',
+  'limit': 20
+})</query><query name="SPARQL" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="sparql" optimize="1"># SPARQL is the native query language for your triples.
+# Make use of prefix declarations to keep your SPARQL concise
+
+prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+select *
+where {
+  ?characterUri foaf:name ?characterName .
+  ?characterUri swonto:playedBy ?playedBy .
+  optional { ?playedBy mlonto:birthDate ?dob }
+  optional { ?playedBy mlonto:almaMater ?almaMater  }
+}
+</query><query name="SPARQL via Optic" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="javascript" optimize="1">/*
+ * The Optic API allows you to run your SPARQL and incorporate the results 
+ * with your other routines. 
+ *
+ * To help prevent SPARQL injection, you could use placeholders using the
+ * `@` and supply your bindings as part of the call to `.result()`.
+ */
+'use strict';
+const op = require('/MarkLogic/optic');
+
+op.fromSPARQL(`
+  prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+  prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+  prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+  select *
+  where {
+    ?characterUri foaf:name ?characterName .
+    ?characterUri swonto:playedBy ?playedBy .
+    optional { ?playedBy mlonto:birthDate ?dob }
+    optional { ?playedBy mlonto:almaMater ?almaMater  }
+  }
+`)
+.result()</query><query name="SQL and SPARQL" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="javascript" optimize="1">/*
+ * The Optic API allows you to run your SQL and SPARQL together and incorporate
+ * the results with your other routines. 
+ *
+ * Note that the following script only highlights the possibility and does not
+ * necessarily recommended for production use.
+ */
+'use strict';
+
+const op = require('/MarkLogic/optic');
+
+let sparql = op.fromSPARQL(`
+  prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+  prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+  prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+  select *
+  where {
+    ?characterUri foaf:name ?characterName .
+    ?characterUri swonto:playedBy ?playedBy .
+    optional { ?playedBy mlonto:birthDate ?dob }
+    optional { ?playedBy mlonto:almaMater ?almaMater  }
+  }
+`)
+
+let sql = op.fromSQL('select * from characters')
+
+sql.joinLeftOuter(sparql, op.on(op.col('characterName'), op.col('name')))
+  .where(op.isDefined(op.col('playedBy')))
+  .result()
+</query></workspace></export>

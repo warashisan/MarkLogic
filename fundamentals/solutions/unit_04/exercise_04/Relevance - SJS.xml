@@ -1,0 +1,209 @@
+<export><workspace name="Relevance - SJS"><query name="Result relevance" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * All document search functions (cts, search, jsearch) would return the most relevant document
+ * by default. This relevance is expressed in different ways: score, confidence and fitness.
+ */
+'use strict';
+
+let results = []
+for (var item of cts.search("droid", ['relevance-trace'])){
+  results.push({
+    'uri' : fn.baseUri(item),
+    'score' : cts.score(item),
+    'confidence' : cts.confidence(item),
+    'fitness' : cts.fitness(item),
+    // this can get really lengthy, enable if desired.
+    //'formula' : cts.relevanceInfo(item)
+  })
+}
+results</query><query name="Term frequency" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * One major factor is the number of times that a matching word appears in the document.
+ * This is called the `term-frequency`
+ * See how, the document with higher word count has a higher score.
+ */
+'use strict';
+
+/* 
+ * WARNING: this is a limited pseudo check routine to count the appearance of words in
+ * the document. This does NOT represent the actual computation routine.
+ */
+function checkWordCount(
+  words, find
+) {
+  let count = 0
+  for (let word of words) {
+    if (fn.lowerCase(word) == find) {
+      ++count
+    }
+  }
+  return count
+}
+
+function getWords(doc){
+  let words = []
+  for (let prop in doc.root){
+    for (let token of cts.tokenize(fn.string(doc.root[prop]))){
+      if (fn.deepEqual(sc.name(sc.type(token)), fn.QName("http://marklogic.com/cts", "word"))) {
+        words.push(fn.lowerCase(token))
+      }
+    }
+  }
+  return words
+}
+
+let q = "sith"
+let results = []
+for (var item of cts.search(q, ['relevance-trace', 'score-logtf'])){
+  let content = getWords(item)
+  results.push({
+    'uri' : fn.baseUri(item),
+    'termFrequency' : checkWordCount(content, q)
+  })
+}
+results</query><query name="Term density" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * This term frequency is normalized based on word density. So that words on shorter documents
+ * would score higher than documents with more content.
+ */
+'use strict';
+
+/* 
+ * WARNING: this is a limited pseudo check routine to count the appearance of words in
+ * the document. This does NOT represent the actual computation routine.
+ */
+function checkWordCount(
+  words, find
+) {
+  let count = 0
+  for (let word of words) {
+    if (fn.lowerCase(word) == find) {
+      ++count
+    }
+  }
+  return count
+}
+
+/* 
+ * WARNING: this is a limited pseudo check routine to count the appearance of words in
+ * the document. This does NOT represent the actual computation routine.
+ */
+function checkWordDensity(
+  words, find
+) {
+  let count = 0
+  for (let word of words) {
+    if (fn.lowerCase(word) == find) {
+      ++count
+    }
+  }
+  return count / words.length
+}
+
+function getWords(doc){
+  let words = []
+  for (let prop in doc.root){
+    for (let token of cts.tokenize(fn.string(doc.root[prop]))){
+      if (fn.deepEqual(sc.name(sc.type(token)), fn.QName("http://marklogic.com/cts", "word"))) {
+        words.push(fn.lowerCase(token))
+      }
+    }
+  }
+  return words
+}
+
+let q = "droid"
+let results = []
+for (var item of cts.search(q, ['relevance-trace', 'score-logtf'])){
+  let content = getWords(item)
+  results.push({
+    'uri' : fn.baseUri(item),
+    'frequency' : checkWordCount(content, q),
+    'density' : checkWordDensity(content, q)
+  })
+}
+results</query><query name="Document Frequency" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * Document frequency on the other hand is affected by queries involving more than one word,
+ * such that the results for terms with less matching documents get returned first.
+ *
+ * Notice how the result would rank the results for "sith" higher than "jedi" since there are 
+ * only 2 documents with the word "sith"
+ */
+'use strict';
+
+let q = cts.parse("jedi OR sith")
+let results = []
+for (var item of cts.search(q, ['relevance-trace'])){
+  results.push({
+    'uri' : fn.baseUri(item),
+    'score' : cts.score(item)
+  })
+}
+results</query><query name="Query Weights" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * Alternatively, you could specify which word is more important for your result by adding
+ * "weight" to your seach term.
+ * "darthvader" document contains the word "jedi" too. that is why it appears third in the
+ * result.
+ */
+'use strict';
+
+let q = cts.orQuery([cts.wordQuery('jedi', null, 100), cts.wordQuery('sith')])
+let results = []
+for (var item of cts.search(q, ['relevance-trace'])){
+  let relevanceInfo = cts.relevanceInfo(item)
+  results.push({
+    'uri' : fn.baseUri(item),
+    'term' : relevanceInfo.term || relevanceInfo.or.relevanceClauses
+  })
+}
+results</query><query name="Word Query Weights" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * Refer to the lab instructions on how to configure word query weights. After doing so,
+ * run this query.
+ *
+ * Notice that darthvader and maximillianveers are still included in this list but 
+ * are pushed to the very end of the list. This is because the word 'rebel' 
+ * only appears as part of the bio and not of the "alliance" that we marked in
+ * the database's word query.
+ */
+'use strict';
+
+let q = "rebel"
+let results = []
+for (var item of cts.search(q, ['relevance-trace'])){
+  results.push(fn.baseUri(item))
+}
+results</query><query name="Document Weights" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * Notice the sequence of the results. At the moment, the default document quality is 0. 
+ * 
+ * Use the next tab to tweak the quality of these documents and rerun this tab to see the
+ * effect on the score.
+ */
+'use strict';
+
+let q = cts.parse("sith")
+let results = []
+for (var item of cts.search(q, ['relevance-trace'])){
+  results.push({
+    'uri' : fn.baseUri(item),
+    'score' : cts.relevanceInfo(item).score
+  })
+}
+results</query><query name="Utility: Change document quality" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="">/*
+ * Use this tab to tweak the document quality for the two documents below. Then go back 
+ * to the previous tab to see the effect on the resulting score and its computation.
+ */
+'use strict';
+declareUpdate()
+xdmp.documentSetQuality('/characters/darthvader.json', 100);
+xdmp.documentSetQuality('/characters/darthsidious.json', -100);
+</query><query name="Utility: Clear WebDav files" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="playground" server-name="playground" mode="javascript" optimize="1">/*
+ * The optional exercise on creating and testing a WebDav app server introduced additional
+ * files on our playground database. To make sure that the duplicates do not factor in the
+ * behavior of the succeeding tabs, please run this tab to clear out those documents.
+ *
+ * Alternatively, one could clear the contents of this database using the Admin UI and
+ * reload the documents using the previous lab exercises.
+ */
+'use strict';
+declareUpdate()
+
+for (let uri of cts.uris('', null, cts.directoryQuery('/fundamentals/', 'infinity'))) {
+  xdmp.documentDelete(uri)
+}</query></workspace></export>

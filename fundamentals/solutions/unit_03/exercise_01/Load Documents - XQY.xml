@@ -1,0 +1,153 @@
+<export><workspace name="Load Documents"><query name="Basic Insert" focus="false" listorder="1" taborder="1" active="true" database="1814532960113569457" server="5274041235097448994" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * This shows how to create a document using an in-memory document.
+ * Notice the typical data types being used along with the accepted values for each type.
+ * It is worth noting that in MarkLogic, even dates have timezones.
+ * Click on "Explore" to see the actual values being stored.
+ :)
+xquery version "1.0-ml";
+
+xdmp:document-insert(
+  '/sample-data-types.json', 
+  object-node {
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : fn:true(),
+    "date" : xs:date("2021-12-23-07:00"),
+    "dateTime" : xs:dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs:time("12:34:47-07:00")
+  }
+)</query><query name="REST Insert" focus="false" listorder="2" taborder="2" active="true" database="1814532960113569457" server="5274041235097448994" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * One could also push content into MarkLogic using the Client REST API.
+ * Endpoint: PUT /v1/documents
+ * Clients have been implemented for some languages. 
+ * Do note that these are community supported libraries.
+ *
+ * 1. Java: https://developer.marklogic.com/products/java/
+ * 2. NodeJS: https://developer.marklogic.com/products/node/
+ * 3. PHP: https://developer.marklogic.com/code/mlphp/
+ :)
+xquery version "1.0-ml";
+
+xdmp:http-put(
+  fn:concat(
+    'http://localhost:8000/v1/documents', 
+    '?uri=/sample-data-types.json'
+  )
+  ,
+  map:map() 
+    =&gt; map:with('authentication', map:map() 
+      =&gt; map:with('method', 'digest')
+      =&gt; map:with('username', 'admin')
+      =&gt; map:with('password', 'admin')
+    )
+    =&gt; map:with('headers', map:map() 
+      =&gt; map:with('Content-type', 'application/json')
+      =&gt; map:with('Accept', 'application/json')
+    )
+  ,
+  xdmp:to-json(object-node {
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : fn:true(),
+    "date" : xs:date("2021-12-23-07:00"),
+    "dateTime" : xs:dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs:time("12:34:47-07:00")
+  })
+)</query><query name="REST Insert Many" focus="false" listorder="3" taborder="3" active="true" database="1814532960113569457" server="5274041235097448994" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * One could also push multiple documents in one request.
+ * Endpoint: POST /v1/documents
+ * Just make sure that you have built your multi-part content properly.
+ :)
+xquery version "1.0-ml";
+
+(: suppose that you want to push 2 documents at the same time. :)
+let $documents := (
+  xdmp:to-json(object-node{'first': '1'}),
+  xdmp:to-json(object-node{'second': '2'})
+)
+(: 
+ : you would need to declare the "manifest" identifying the content-type
+ : of each item. You can use the "Content-Disposition" to declare the URI
+ :)
+let $boundary-string := fn:replace(sem:uuid-string(), '-', '')
+let $manifest := &lt;manifest&gt;
+     &lt;part&gt;
+       &lt;headers&gt;
+         &lt;Content-Type&gt;application/json&lt;/Content-Type&gt;
+         &lt;Content-Disposition&gt;filename="/sample/doc1.json"&lt;/Content-Disposition&gt;
+         &lt;boundary&gt;{$boundary-string}&lt;/boundary&gt;
+       &lt;/headers&gt;
+     &lt;/part&gt;
+     &lt;part&gt;
+       &lt;headers&gt;
+         &lt;Content-Type&gt;application/json&lt;/Content-Type&gt;
+         &lt;Content-Disposition&gt;filename="/sample/doc2.json"&lt;/Content-Disposition&gt;
+       &lt;/headers&gt;
+     &lt;/part&gt;
+  &lt;/manifest&gt;
+let $data := xdmp:multipart-encode(
+   $boundary-string,
+   $manifest,
+   $documents)
+return xdmp:http-post(
+  'http://localhost:8000/v1/documents', 
+  map:map() 
+    =&gt; map:with('authentication', map:map() 
+      =&gt; map:with('method', 'digest')
+      =&gt; map:with('username', 'admin')
+      =&gt; map:with('password', 'admin')
+    )
+    =&gt; map:with('headers', map:map() 
+      =&gt; map:with('Content-type', 'multipart/mixed; boundary=' || $boundary-string)
+      =&gt; map:with('Accept', 'application/json')
+    )
+  , 
+  $data
+)</query><query name="Loading local data" focus="false" listorder="4" taborder="4" active="true" database="9613134946875500342" server="5274041235097448994" database-name="playground" server-name="App-Services" mode="xquery" optimize="">(:
+ * This shows how to load documents from disk. "Disk" here is defined as the
+ * local disk of the MarkLogic instance processing the request, and not the 
+ * client's local disk.
+ * 
+ * Click on "Explore" to see the actual content being stored.
+ :)
+xquery version "1.0-ml";
+
+declare namespace dir = "http://marklogic.com/xdmp/directory";
+
+declare variable $pathToDocs := '/home/cent/Desktop/fundamentals/data/star-wars/characters';
+
+let $docResults := xdmp:filesystem-directory($pathToDocs)
+for $doc in $docResults/dir:entry
+return xdmp:document-load(
+    $doc/dir:pathname, 
+    map:map() =&gt; map:with("uri", '/characters/' || $doc/dir:filename)
+              =&gt; map:with("collections", ("star-wars", "characters"))
+  )
+</query><query name="Extracting binary info" focus="false" listorder="5" taborder="5" active="true" database="9613134946875500342" server="5274041235097448994" database-name="playground" server-name="App-Services" mode="xquery" optimize="">(:
+ * This shows how metadata of binaries could be extracted and stored separately.
+ * 
+ * Click on "Explore" to see the actual content being stored.
+ :)
+xquery version "1.0-ml";
+
+declare namespace dir = "http://marklogic.com/xdmp/directory";
+
+declare variable $pathToDocs := '/home/cent/Desktop/fundamentals/data/star-wars/images';
+
+let $docResults := xdmp:filesystem-directory($pathToDocs)
+for $doc in $docResults/dir:entry
+let $binary := xdmp:external-binary($doc/dir:pathname)
+let $meta-data := xdmp:document-filter($binary)
+return (
+  xdmp:document-load(
+    $doc/dir:pathname, 
+    map:map() =&gt; map:with("uri", '/characters/' || $doc/dir:filename)
+              =&gt; map:with("collections", ("star-wars", "images"))
+  )
+  ,
+  xdmp:document-insert(
+    '/characters/' || $doc/dir:filename || ".xml",
+    $meta-data
+  )
+)
+</query></workspace></export>

@@ -1,0 +1,38 @@
+{
+  "template": {
+    "context": "/",
+    "collections": ["characters"],
+    "rows": [{
+        "schemaName": "starwars",
+        "viewName": "characters",
+        "columns": [{
+            "name": "name",
+            "scalarType": "string",
+            "val": "name",
+            "nullable": true
+          }, {
+            "name": "role",
+            "scalarType": "string",
+            "val": "role",
+            "nullable": true
+          }, {
+            "name": "height",
+            "scalarType": "decimal",
+            "val": "height",
+            "nullable": true
+          }, {
+            "name": "homeworld",
+            "scalarType": "string",
+            "val": "homeworld",
+            "nullable": true
+          }, {
+            "name": "alliance",
+            "scalarType": "string",
+            "val": "alliance",
+            "nullable": true
+          }
+        ]
+      }
+    ]
+  }
+}

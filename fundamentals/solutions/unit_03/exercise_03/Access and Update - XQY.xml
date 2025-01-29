@@ -1,0 +1,231 @@
+<export><workspace name="Access and Update"><query name="Basic retrieval" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * Recap: Documents are identified using their URI
+ :)
+xquery version "1.0-ml";
+
+fn:doc('/sample-data-types.json')</query><query name="Accessing properties" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : Use XPath to access the properties of documents. The use of /data()
+ : allows for direct evaluation of content to the applicable type
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+return $doc/decimal/data()</query><query name="Converting to Mutable" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : In memory copies of documents are immutable. For JSONDocument, one 
+ : option is to convert it to a map, then perform your update on the 
+ : map and convert back to a JSONDocument.
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+let $error := ()
+(: this is not assignment, this is comparison :)
+let $_ := $doc/decimal = 999.999
+let $updated := 
+  let $map as map:map := $doc
+  let $_ := map:put($map, 'decimal', 999.999)
+  return xdmp:to-json($map)
+return ($doc, $updated)</query><query name="Data types" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : Unlike in SJS, XQuery can compare primitive types directly.
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+return object-node {
+  'string': $doc/string = 'value',
+  'decimal': $doc/decimal = 3.1416,
+  'decimal-data': $doc/decimal/data() = 3.1416,
+  'boolean': $doc/boolean = fn:true(),
+  'boolean-data': $doc/boolean/data() = fn:true()
+}
+</query><query name="Data types ext" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : Properties of type xs.date, xs.dateTime and xs.time would be stored as 
+ : string of a particular format. use `/data()` to automatically convert 
+ : them to the expected type.
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+return object-node {
+  'date': $doc/date/data() = xs:date('2021-12-23-07:00'),
+  'dateTime': $doc/dateTime/data() = xs:dateTime('2021-12-23T12:34:47-07:00'),
+  'time': $doc/time/data() = xs:time('12:34:47-07:00')
+}
+</query><query name="Document update" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : Performing xdmp:document-insert or xdmp:document-load towards the same URI
+ : counts as an update. Check the database's status page and see the number
+ : of deleted fragments increase as you repeatedly run this tab.
+ :)
+xquery version "1.0-ml";
+
+xdmp:document-insert(
+  '/sample-data-types.json', 
+  object-node{
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : fn:true(),
+    "date" : xs:date("2021-12-23-07:00"),
+    "dateTime" : xs:dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs:time("12:34:47-07:00")
+  },
+  map:map() =&gt;
+    map:with('collections', "sample")
+)</query><query name="Node insert" focus="false" listorder="10" taborder="10" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * Node-specific functions (xdmp:node-replace, xdmp:node-insert-after, 
+ * xdmp:node-insert-before, xdmp:node-insert-child) has the advantage 
+ * of updating the content while preserving any 
+ * metadata (collection, permissions, quality, etc.) of a document
+ *
+ * Click on explore after running this tab and see that the collection
+ * was not modified.
+ * 
+ * Click on the document to see the new property get added.
+ * 
+ * Use the previous tab to reset the document if desired.
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+let $node-to-add := object-node{ 'duration' : xs:duration('P1DT170M52S')}
+return xdmp:node-insert-child(
+  $doc/node(), 
+  $node-to-add/*
+)
+</query><query name="Node replace 2" focus="false" listorder="12" taborder="12" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : The result of cts.doc is special. They maintain reference to the source
+ : document/fragment.
+ :
+ : Node-specific functions (xdmp:node-replace, xdmp:node-insert-after, 
+ : xdmp:node-insert-before, xdmp:node-insert-child) require the use of these
+ : objects.
+ :
+ : The following examples would fail.
+ :)
+xquery version "1.0-ml";
+
+let $new := object-node{'new': 'JSONDocument'}
+let $node-to-add := object-node{ 'duration' : xs:duration('P1DT170M52S')}
+let $errors := ()
+let $_ := (
+  try {
+    xdmp:node-insert-child(
+      $new/node(), 
+      $node-to-add/*
+    )  
+  } catch ($e) {
+    xdmp:set($errors, ($errors, $e))
+  }
+)
+return $errors</query><query name="Any change" focus="false" listorder="13" taborder="13" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * MarkLogic never updates documents in place. Each change will create an entire
+ * new version of the document.
+ *
+ * Check the database's status page and see the number of deleted fragments 
+ * increase as you repeatedly run this tab.
+ :)
+xquery version "1.0-ml";
+
+xdmp:document-set-quality('/sample-data-types.json', 10)</query><query name="REST - Retrieval" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * Documents could also be retrieved using the Client REST API.
+ * Clients have been implemented for some languages. 
+ * Do note that these are community supported libraries.
+ *
+ * 1. Java: https://developer.marklogic.com/products/java/
+ * 2. NodeJS: https://developer.marklogic.com/products/node/
+ * 3. PHP: https://developer.marklogic.com/code/mlphp/
+ :)
+xquery version "1.0-ml";
+
+xdmp:http-get(
+  fn:concat(
+    'http://localhost:8000/v1/documents',
+    '?uri=/sample-data-types.json'
+  )
+  , 
+  map:map() 
+    =&gt; map:with('authentication', map:map() 
+      =&gt; map:with('method', 'digest')
+      =&gt; map:with('username', 'admin')
+      =&gt; map:with('password', 'admin')
+    )    
+)</query><query name="REST - Metadata" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ : Document metadata could also be retrieved by specifying the category.
+ :)
+xquery version "1.0-ml";
+
+xdmp:http-get(
+  fn:concat(
+    'http://localhost:8000/v1/documents',
+    '?uri=/sample-data-types.json',
+    '&amp;amp;category=metadata'
+  )
+  , 
+  map:map() 
+    =&gt; map:with('authentication', map:map() 
+      =&gt; map:with('method', 'digest')
+      =&gt; map:with('username', 'admin')
+      =&gt; map:with('password', 'admin')
+    )
+    =&gt; map:with('headers', map:map() 
+      =&gt; map:with('Accept', 'application/json')
+    )
+)
+</query><query name="Node replace" focus="false" listorder="11" taborder="11" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="">(:
+ * Node-specific functions (xdmp.nodeReplace, xdmp.nodeInsertAfter, 
+ * xdmp.nodeInsertBefore, xdmp.nodeInsertChild) require the use of
+ * JSONDocument, or XMLDocument as returned by cts.doc. They maintain 
+ * reference to the source document/fragment.
+ *
+ * Click on Explore to see the changes.
+ :)
+xquery version "1.0-ml";
+
+let $doc := fn:doc('/sample-data-types.json')
+let $node-to-replace := $doc/duration
+let $replacement := object-node{ 'duration' : xs:duration('P2DT2M3S')}
+return xdmp:node-replace(
+  $node-to-replace, 
+  $replacement/*
+)</query><query name="Basic retrieval - Metadata" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+let $uri := '/employee/107.json'
+return object-node {
+  "permissions": array-node{ xdmp:document-get-permissions($uri, 'objects') },
+  "collections": array-node{ xdmp:document-get-collections($uri) },
+  "quality": xdmp:document-get-quality($uri)
+}</query><query name="REST Update" focus="false" listorder="14" taborder="14" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Updating using PUT will update all content and/or metadata of a document.
+ * Try changing the collections from ["col1", "col2"] to ["col3", "col4"],
+ * Notice how "col1" and "col2" are lost. This behavior is closer to the 
+ * function xdmp.documentSetCollections, instead of xdmp.documentAddCollections
+ :)
+xquery version "1.0-ml";
+
+xdmp:http-put(
+  fn:concat('http://localhost:8000/v1/documents' 
+    , '?uri=/sample-data-types.json'
+    , '&amp;amp;collection=col1'
+    , '&amp;amp;collection=col2'
+  )
+  ,
+  &lt;options xmlns="xdmp:http"&gt;
+    &lt;authentication method="digest"&gt;
+      &lt;username&gt;admin&lt;/username&gt;
+      &lt;password&gt;admin&lt;/password&gt;
+    &lt;/authentication&gt;
+    &lt;headers&gt;
+      &lt;Content-type&gt;application/json&lt;/Content-type&gt;
+      &lt;Accept&gt;application/json&lt;/Accept&gt;
+    &lt;/headers&gt;
+  &lt;/options&gt;
+  , 
+  document { object-node{
+    "string" : "value",
+    "decimal" : 3.1416,
+    "boolean" : fn:true(),
+    "date" : xs:date("2021-12-23-07:00"),
+    "dateTime" : xs:dateTime("2021-12-23T12:34:47-07:00"),
+    "time" : xs:time("12:34:47-07:00"),
+    "duration" : xs:dayTimeDuration("P1DT4H4M7S")
+  }}
+)</query></workspace></export>

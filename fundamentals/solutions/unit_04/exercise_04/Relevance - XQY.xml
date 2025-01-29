@@ -1,0 +1,169 @@
+<export><workspace name="Relevance - XQY"><query name="Result relevance" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * All document search functions (cts, search, jsearch) would return the most relevant document
+ * by default. This relevance is expressed in different ways: score, confidence and fitness.
+ :)
+xquery version "1.0-ml";
+
+for $item in cts:search(/, "droid", ('relevance-trace'))
+return object-node{
+    'uri' : fn:base-uri($item),
+    'score' : cts:score($item),
+    'confidence' : cts:confidence($item),
+    'fitness' : cts:fitness($item)
+    (: this can get really lengthy, enable if desired. :)
+    (:, 'formula' : cts.relevanceInfo($item) :)
+  }</query><query name="Term frequency" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * One major factor is the number of times that a matching word appears in the document.
+ * This is called the `term-frequency`
+ * See how, the document with higher word count has a higher score.
+ :)
+xquery version "1.0-ml";
+
+(:
+ * WARNING: this is a limited pseudo check routine to count the appearance of words in
+ * the document. This does NOT represent the actual computation routine.
+ :)
+declare function local:check-word-count(
+  $words as xs:string+,
+  $find as xs:string
+) as xs:int {
+  fn:count($words[. eq $find])
+};
+
+declare function local:get-words(
+  $doc
+) as xs:string+ {
+  for $prop in $doc/*
+  for $token in cts:tokenize($prop/string())
+  where $token instance of cts:word
+  return fn:lower-case($token)
+};
+
+let $q := "sith"
+for $item in cts:search(/, $q, ('relevance-trace', 'score-logtf'))
+let $content := local:get-words($item)
+return object-node{
+    'uri' : fn:base-uri($item),
+    'termFrequency' : local:check-word-count($content, $q)
+  }
+</query><query name="Term density" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * This term frequency is normalized based on word density. So that words on shorter documents
+ * would score higher than documents with more content.
+ :)
+xquery version "1.0-ml";
+
+(:
+ * WARNING: this is a limited pseudo check routine to count the appearance of words in
+ * the document. This does NOT represent the actual computation routine.
+ :)
+declare function local:check-word-count(
+  $words as xs:string+,
+  $find as xs:string
+) as xs:int {
+  fn:count($words[. eq $find])
+};
+
+declare function local:check-word-density(
+  $words as xs:string+,
+  $find as xs:string
+) as xs:decimal {
+  fn:count($words[. eq $find]) div fn:count($words)
+};
+
+declare function local:get-words(
+  $doc
+) as xs:string+ {
+  for $prop in $doc/*
+  for $token in cts:tokenize($prop/string())
+  where $token instance of cts:word
+  return fn:lower-case($token)
+};
+
+let $q := "droid"
+for $item in cts:search(/, $q, ('relevance-trace', 'score-logtf'))
+let $content := local:get-words($item)
+return object-node{
+    'uri' : fn:base-uri($item),
+    'termFrequency' : local:check-word-count($content, $q),
+    'density' : local:check-word-density($content, $q)
+  }
+</query><query name="Document Frequency" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * Document frequency on the other hand is affected by queries involving more than one word,
+ * such that the results for terms with less matching documents get returned first.
+ *
+ * Notice how the result would rank the results for "sith" higher than "jedi" since there are 
+ * only 2 documents with the word "sith"
+ :)
+xquery version "1.0-ml";
+
+let $q := cts:parse("jedi OR sith")
+for $item in cts:search(/, $q, ('relevance-trace'))
+return object-node{
+    'uri' : fn:base-uri($item),
+    'score' : cts:score($item)
+  }
+</query><query name="Query Weights" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * Alternatively, you could specify which word is more important for your result by adding
+ * "weight" to your seach term.
+ * "darthvader" document contains the word "jedi" too. that is why it appears third in the
+ * result.
+ :)
+xquery version "1.0-ml";
+
+let $q := cts:or-query((
+    cts:word-query('jedi', (), 100), 
+    cts:word-query('sith')
+  ))
+for $item in cts:search(/, $q, ('relevance-trace'))
+let $relevance-info := xdmp:to-json(cts:relevance-info($item, 'object'))
+return object-node{
+    'uri' : fn:base-uri($item),
+    'term' : array-node{($relevance-info/term, $relevance-info/or)}
+  }
+</query><query name="Word Query Weights" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * Refer to the lab instructions on how to configure word query weights. After doing so,
+ * run this query.
+ *
+ * Notice that darthvader and maximillianveers are still included in this list but 
+ * are pushed to the very end of the list. This is because the word 'rebel' 
+ * only appears as part of the bio and not of the "alliance" that we marked in
+ * the database's word query.
+ :)
+xquery version "1.0-ml";
+
+let $q := "rebel"
+for $item in cts:search(/, $q, ('relevance-trace'))
+return fn:base-uri($item)</query><query name="Document Weights" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * Notice the sequence of the results. At the moment, the default document quality is 0. 
+ * 
+ * Use the next tab to tweak the quality of these documents and rerun this tab to see the
+ * effect on the score.
+ :)
+xquery version "1.0-ml";
+
+let $q := 'sith'
+for $item in cts:search(/, $q, ('relevance-trace'))
+let $relevance-info := xdmp:to-json(cts:relevance-info($item, 'object'))
+return object-node{
+    'uri' : fn:base-uri($item),
+    'score' : $relevance-info/score
+  }
+</query><query name="Utility: Change document quality" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="">(:
+ * Use this tab to tweak the document quality for the two documents below. Then go back 
+ * to the previous tab to see the effect on the resulting score and its computation.
+ :)
+xquery version "1.0-ml";
+xdmp:document-set-quality('/characters/darthvader.json', 100);
+xdmp:document-set-quality('/characters/darthsidious.json', -100);
+</query><query name="Utility: Clear WebDav Files" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="playground" server-name="playground" mode="xquery" optimize="1">(:
+ * The optional exercise on creating and testing a WebDav app server introduced additional
+ * files on our playground database. To make sure that the duplicates do not factor in the
+ * behavior of the succeeding tabs, please run this tab to clear out those documents.
+ *
+ * Alternatively, one could clear the contents of this database using the Admin UI and
+ * reload the documents using the previous lab exercises.
+ :)
+xquery version "1.0-ml";
+
+cts:uris('', (), cts:directory-query('/fundamentals/', 'infinity')) ! xdmp.documentDelete(.)
+</query></workspace></export>

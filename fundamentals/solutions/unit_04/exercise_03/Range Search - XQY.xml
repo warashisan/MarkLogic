@@ -1,0 +1,125 @@
+<export><workspace name="Range Indexes"><query name="Ranged Query" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Range Indexes are mainly used to answer inequality type of questions that 
+ * require the content's datatype to be known.
+ *
+ * Notice how a numeric index has been created on a property that contains
+ * string values. MarkLogic can do auto-type-casting as long as the values
+ * could be converted without errors.
+ :)
+xquery version "1.0-ml";
+
+cts:search(
+  /,
+  cts:and-query((
+    cts:json-property-range-query('office_number', "&gt;", 500),
+    cts:json-property-range-query('office_number', "&lt;", 600)
+  ))
+)</query><query name="Value extraction" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Another purpose of range indexes is to efficiently extract information
+ * without having to read content from disk.
+ :)
+xquery version "1.0-ml";
+
+object-node {
+  'values' : array-node{(
+    cts:values(
+      cts:json-property-reference('last_name'),
+      (),
+      ('limit=10', 'frequency-order', 'descending')
+    )
+  )},
+  'documents read': fn:count(xdmp:query-meters()/documents)
+}</query><query name="Facets" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * This is an example of how you could extend the previous code of value
+ * extraction to include the number of documents/fragments that contains that
+ * value.
+ *
+ * It is important to highlight that this entire process is resolved using
+ * range indexes and that no document is read from disk.
+ :)
+xquery version "1.0-ml";
+
+let $values := cts:values(
+    cts:json-property-reference('last_name'),
+    (),
+    ('limit=10', 'frequency-order', 'descending')
+  )
+return object-node {
+  'facet' : array-node{(
+    for $value in $values
+    return object-node {
+      'value': $value,
+      'count': cts:frequency($value)
+    }
+  )},
+  'documents read': fn:count(xdmp:query-meters()/documents)
+}  
+</query><query name="Efficient Sort" focus="false" listorder="4" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Range index is also used for efficient sorting of results. By using the values
+ * available in memory, the candidates can be sorted in advance instead of having
+ * to read each and every document (`.toArray()`) and performing manual sort.
+ :)
+xquery version "1.0-ml";
+
+declare function local:brute-force-sort(){
+  xdmp:invoke-function(function(){
+    let $items := cts:search(/,
+      cts:json-property-value-query('dept_num', '4'), 
+      ('unfiltered')
+    )
+    let $sorted :=
+      for $item in $items
+      order by $item//instance/last_name descending
+      return $item
+    return local:prepare-subset($sorted[1 to 5])
+  })
+};
+
+declare function local:efficient-sort(){
+  xdmp:invoke-function(function(){
+    let $items := cts:search(/,
+      cts:json-property-value-query('dept_num', '4'), 
+      ('unfiltered', cts:index-order(cts:json-property-reference('last_name'), ('descending')))
+    )
+    return local:prepare-subset($items[1 to 5])
+  })
+};
+
+declare function local:prepare-subset($subset){
+  object-node {
+    'subset': array-node{(
+      for $item in $subset
+      return fn:string-join(($item//last_name, $item//first_name), ', ')
+    )},
+    'stats' : fn:count(xdmp:query-meters()//*:document)
+  }
+};
+
+object-node {
+  'brute force': local:brute-force-sort(),
+  'efficient' : local:efficient-sort()
+}</query><query name="String Collation" focus="false" listorder="5" taborder="4" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="xquery" optimize="1">(:
+ * Collation is specified for each string type of range index. Different collation
+ * can have different effects on the values that get stored. Use the Query Builder
+ * button to build the string to use.
+ :)
+xquery version "1.0-ml";
+
+object-node {
+  'root collation' : array-node{( cts:values(cts:json-property-reference('weapon')) )},
+  'custom collation' : array-node{( cts:values(cts:json-property-reference('weapon', 'collation=http://marklogic.com/collation//S1/T00BB/AS')) )}
+}</query><query name="Geospatial search" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Just like any index, geospatial information can be used together with other
+ * queries to reduce the scope of your query.
+ :)
+xquery version "1.0-ml";
+
+(: Times Square, New York :)
+let $target := cts:point(40.758896, -73.985130)
+return cts:search(/,
+  cts:and-query((
+    cts:json-property-pair-geospatial-query('instance', 'latitude', 'longitude', cts:circle(20, $target)),
+    cts:json-property-word-query('zip', '10459*')
+  ))
+)
+</query></workspace></export>

@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890418", 
+    "banner": "2017 McLaren 570S Spider", 
+    "make": "McLaren", 
+    "model": "570S", 
+    "year": 2017, 
+    "color": "orange", 
+    "mileage": 10005, 
+    "price": 170000, 
+    "currency": "USD",
+    "description": "8-cylinder turbo, 7-speed automatic, luxury pack", 
+    "transmission": "automatic",
+    "city": "Seattle",
+    "province": "Washington",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 47.614047, 
+      "long": -122.308524
+    }
+  }
+}

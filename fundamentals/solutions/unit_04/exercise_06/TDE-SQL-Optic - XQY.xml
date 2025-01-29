@@ -1,0 +1,282 @@
+<export><workspace name="TDE, SQL, Optic"><query name="Validate your template" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * MarkLogic provides a function to validate your planned template.
+ * This mainly focuses on the property tree and not on the actual
+ * property values.
+ *
+ * Notice how dob and hire_date are manipulated to fit the expected
+ * format of dates. More information about available template functions
+ * is available here: 
+ * https://docs.marklogic.com/guide/app-dev/TDE#id_99178
+ :)
+xquery version "1.0-ml";
+
+let $template := xdmp:to-json(object-node {
+  "template": object-node {
+    "context": "/envelope/instance",
+    "collections": array-node { ("employee")},
+    "rows": array-node { (object-node {
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": array-node { (object-node {
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, object-node {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, object-node {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, object-node {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": fn:true()
+          }
+        )}
+      }
+    )}
+  }
+})
+return tde:validate($template)</query><query name="Test your template" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Make use of the `tde.nodeDataExtract` function to check out
+ * how your rows would eventually get filled.
+ *
+ * Notice that your "dob" and "hire_date" have been curated to
+ * support search using date. MarkLogic requires this format.
+ :)
+xquery version "1.0-ml";
+
+let $template := xdmp:to-json(object-node {
+  "template": object-node {
+    "context": "/envelope/instance",
+    "collections": array-node { ("employee")},
+    "rows": array-node { (object-node {
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": array-node { (object-node {
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, object-node {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, object-node {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, object-node {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": fn:true()
+          }
+        )}
+      }
+    )}
+  }
+})
+return tde:node-data-extract(fn:doc('/employee/107.json'), $template)</query><query name="Create your template" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * When you are happy with the extraction, you can proceed to 
+ * create your template. This template gets stored in the 
+ * configured schema database for your content.
+ :)
+xquery version "1.0-ml";
+
+import module namespace tde = "http://marklogic.com/xdmp/tde" 
+        at "/MarkLogic/tde.xqy";
+
+let $template := xdmp:to-json(object-node {
+  "template": object-node {
+    "context": "/envelope/instance",
+    "collections": array-node { ("employee")},
+    "rows": array-node { (object-node {
+        "schemaName": "mountaintop",
+        "viewName": "employee",
+        "columns": array-node { (object-node {
+            "name": "id",
+            "scalarType": "string",
+            "val": "emp_id"
+          }, object-node {
+            "name": "first_name",
+            "scalarType": "string",
+            "val": "first_name"
+          }, object-node {
+            "name": "last_name",
+            "scalarType": "string",
+            "val": "last_name"
+          }, object-node {
+            "name": "dob",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', dob)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "hire_date",
+            "scalarType": "date",
+            "val": "fn:substring(xs:string(xdmp:parse-dateTime('[M01]/[D01]/[Y0001]', hire_date)), 1, 10)",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "job_title",
+            "scalarType": "string",
+            "val": "job_title",
+            "nullable": fn:true()
+          }, object-node {
+            "name": "reports_to",
+            "scalarType": "string",
+            "val": "reports_to",
+            "nullable": fn:true()
+          }
+        )}
+      }
+    )}
+  }
+})
+return tde:template-insert('/employee.json', $template)</query><query name="Review your template" focus="false" listorder="4" taborder="4" active="true" database="1706567356385288872" server="" database-name="Schemas" server-name="App-Services" mode="xquery" optimize="1">(:
+ * As previously mentioned, your template gets stored in the configured schema
+ * database for your content. Click on explore to see that your template is
+ * also tagged with a specific collection.
+ :)
+xquery version "1.0-ml";
+
+let $uri := '/employee.json'
+return (
+  xdmp:document-get-collections($uri),
+  fn:doc($uri)
+)</query><query name="Run in SQL mode" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="sql" optimize="1">-- MarkLogic supports SQL-92
+-- There are also several functions that are specific to MarkLogic
+-- see: https://docs.marklogic.com/sql
+
+select datediff('year', dob, now()) as age, employee.*
+from employee
+where dob &gt;= '1980-01-01'
+and dob &lt; '1990-01-01'
+order by dob desc
+limit 20</query><query name="SQL via Optic" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * The Optic API allows you to run your SQL and incorporate the results with 
+ * your other routines. 
+ *
+ * To help prevent SQL injection, you could use placeholders using the `@`
+ * and supply your bindings as part of the call to `.result()` as shown below.
+ :)
+xquery version "1.0-ml";
+
+import module namespace op="http://marklogic.com/optic"
+     at "/MarkLogic/optic.xqy";
+
+op:from-sql("
+  select datediff('year', dob, now()) as age, employee.*
+  from employee
+  where dob &gt;= @start
+  and dob &lt; @end
+  order by dob desc
+  limit @limit
+")
+  =&gt; op:result((), object-node{
+      'start': '1980-01-01',
+      'end': '1990-01-01',
+      'limit': 20
+    })</query><query name="SPARQL" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="sparql" optimize="1"># SPARQL is the native query language for your triples.
+# Make use of prefix declarations to keep your SPARQL concise
+
+prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+select *
+where {
+  ?characterUri foaf:name ?characterName .
+  ?characterUri swonto:playedBy ?playedBy .
+  optional { ?playedBy mlonto:birthDate ?dob }
+  optional { ?playedBy mlonto:almaMater ?almaMater  }
+}
+</query><query name="SPARQL via Optic" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="xquery" optimize="1">(:
+ * The Optic API allows you to run your SPARQL and incorporate the results 
+ * with your other routines. 
+ *
+ * To help prevent SPARQL injection, you could use placeholders using the
+ * `@` and supply your bindings as part of the call to `.result()`.
+ :)
+xquery version "1.0-ml";
+
+import module namespace op="http://marklogic.com/optic"
+     at "/MarkLogic/optic.xqy";
+
+op:from-sparql("
+  prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+  prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+  prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+  select *
+  where {
+    ?characterUri foaf:name ?characterName .
+    ?characterUri swonto:playedBy ?playedBy .
+    optional { ?playedBy mlonto:birthDate ?dob }
+    optional { ?playedBy mlonto:almaMater ?almaMater  }
+  }
+")
+  =&gt; op:result()</query><query name="SQL and SPARQL" focus="false" listorder="9" taborder="9" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="xquery" optimize="1">(:
+ * The Optic API allows you to run your SQL and SPARQL together and incorporate
+ * the results with your other routines. 
+ *
+ * Note that the following script only highlights the possibility and does not
+ * necessarily recommended for production use.
+ :)
+xquery version "1.0-ml";
+
+import module namespace op="http://marklogic.com/optic"
+     at "/MarkLogic/optic.xqy";
+
+let $sparql := op:from-sparql("
+  prefix swonto: &lt;http://marklogic.com/mlu/star-wars/ontology/&gt;
+  prefix mlonto: &lt;http://marklogic.com/mlu/ontology/&gt;
+  prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+
+  select *
+  where {
+    ?characterUri foaf:name ?characterName .
+    ?characterUri swonto:playedBy ?playedBy .
+    optional { ?playedBy mlonto:birthDate ?dob }
+    optional { ?playedBy mlonto:almaMater ?almaMater  }
+  }
+")
+
+let $sql := op:from-sql('select * from characters')
+
+return $sql 
+  =&gt; op:join-left-outer($sparql, op:on(op:col('characterName'), op:col('name')))
+  =&gt; op:where(op:is-defined(op:col('playedBy')))
+  =&gt; op:result()
+</query></workspace></export>

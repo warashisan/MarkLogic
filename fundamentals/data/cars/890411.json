@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890411", 
+    "banner": "1974 Chevrolet Corvette Stingray", 
+    "make": "Chevy", 
+    "model": "Corvette", 
+    "year": 1974, 
+    "color": "orange", 
+    "mileage": 47612, 
+    "price": 23500, 
+    "currency": "USD",
+    "description": "Equipped with power steering, four wheel power disc brakes and air conditioning.", 
+    "transmission": "manual",
+    "city": "Portand",
+    "province": "Oregon",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 45.439559, 
+      "long": -122.530341
+    }
+  }
+}

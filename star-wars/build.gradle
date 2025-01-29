@@ -62,7 +62,7 @@ task importTriples(type: com.marklogic.gradle.task.MlcpTask) {
   command = "IMPORT"
   port = mlAppConfig.restPort
   output_collections = "star-wars,triples"
-  input_file_path = "/home/cent/Desktop/fundamentals/data/triples/"
+  input_file_path = "C:\\repos3\\MarkLogic\\fundamentals\\data\\triples\\"
   input_file_type = "rdf"
 }
 
@@ -75,7 +75,7 @@ task importCsv(type: com.marklogic.gradle.task.MlcpTask) {
   // we are not specifying a port, this will go to Documents by default.
   output_collections = "mountaintop,employee"
   output_permissions = "rest-reader,read,rest-writer,update"
-  input_file_path = "/home/cent/Desktop/fundamentals/data/mountaintop/employee/"
+  input_file_path = "C:\\repos3\\MarkLogic\\fundamentals\\data\\mountaintop\\employee\\"
   input_file_type = "delimited_text"
   uri_id = "emp_id"
   output_uri_prefix = '/employee/'

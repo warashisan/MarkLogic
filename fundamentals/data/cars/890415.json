@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890415", 
+    "banner": "2010 MINI Cooper", 
+    "make": "MINI", 
+    "model": "Cooper", 
+    "year": 2010, 
+    "color": "turquoise blue", 
+    "mileage": 76619, 
+    "price": 7500, 
+    "currency": "USD",
+    "description": "Beautiful metallic blue, with gray interior.", 
+    "transmission": "automatic",
+    "city": "Dundee",
+    "province": "Oregon",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 45.281768, 
+      "long": -123.018132
+    }
+  }
+}

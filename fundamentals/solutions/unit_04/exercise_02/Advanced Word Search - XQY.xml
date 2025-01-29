@@ -1,0 +1,83 @@
+<export><workspace name="Advanced Word Search"><query name="Filtered vs Unfiltered" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * Both filtered and unfiltered searches will use indexes and term lists
+ * to identify candidates/results.
+ *
+ * Filtered goes a step beyond and opens each candidate to confirm / 
+ * "double-check" for accuracy.
+ *
+ * Take note of the number of results.
+ *
+ * Back at your Lab Guide, look at "Enabling trailing wildcard search"
+ * to enable the right term list to enable unfiltered search to become
+ * accurate as well.
+ :)
+xquery version "1.0-ml";
+
+object-node {
+  'filtered' : fn:count(cts:search(/, cts:word-query('account*', ('wildcarded')))),
+  'UNfiltered' : xdmp:estimate(cts:search(/, cts:word-query('account*', ('wildcarded'))))
+}</query><query name="Pagination and filtering" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * This tab highlights how filtered search can be detrimental to a paginated app.
+ * Filtered search will double check and guarantee accuracy, thus would need to 
+ * open all documents prior to your "page jump".
+ :)
+xquery version "1.0-ml";
+
+declare function local:get-meters(
+  $filter-flag as xs:string
+) {
+  xdmp:invoke-function(
+    function(){
+      let $items := cts:search(/, cts:word-query('account*', ('wildcarded')), $filter-flag)
+      (: jump to page 2 :)
+      let $items := fn:subsequence($items, 11, 10)
+      (: this will force a read of the results :)
+      let $_ := xdmp:quote($items)
+      (: return the statistics we are looking for :)
+      return xdmp:query-meters()
+    }
+  )
+};
+
+object-node {
+  'filtered' : fn:count(local:get-meters('filtered')/*:documents/*),
+  'unfiltered' : fn:count(local:get-meters('unfiltered')/*:documents/*)
+}</query><query name="Stemming" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:
+ * This is focused on how stemming works. By default, the english
+ * language is selected. Stemming depends on the actuve language and the 
+ * part of speech.
+ *
+ * Other language require additional license. The function themselves 
+ * will simply succeed with the input as the response if no suitable
+ * license is available.
+ :)
+xquery version "1.0-ml";
+
+object-node {
+  'english verb' : cts:stem('is'),
+  'english noun' : cts:stem('castles'),
+  'japanese verb' : cts:stem('行進', 'ja'),
+  'japanese noun' : cts:stem('日々', 'ja')
+}</query><query name="Proximity" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="xquery" optimize="1">(:
+ * Similar to the "Filtered vs Unfiltered" tab, this tab shows how
+ * accuracy is highly dependent on either the indexes that are available
+ * or on filtering (slow)
+ *
+ * Back at your Lab Guide, look at "Enabling word positions"
+ * to enable the right term list to enable unfiltered search to become
+ * accurate as well.
+ :)
+xquery version "1.0-ml";
+
+let $query := cts:near-query(
+  (
+    cts:word-query('rebel'),
+    cts:word-query('empire')
+  )
+  , 10)
+return object-node{
+  'filtered' : fn:count(cts:search(/, $query)),
+  'UNfiltered' : xdmp:estimate(cts:search(/, $query)),
+  'accurate' : cts:search(/, $query),
+  'candidates' : cts:search(/, $query, 'unfiltered')
+}</query></workspace></export>

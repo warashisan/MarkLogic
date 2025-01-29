@@ -1,0 +1,24 @@
+{
+  "car": 
+  {
+  	"id": "890414", 
+    "banner": "1968 Volkswagen Beetle Bug", 
+    "make": "Volkswagen", 
+    "model": "Beetle", 
+    "year": 1968, 
+    "color": "orange and yellow", 
+    "mileage": 70085, 
+    "price": 8995, 
+    "currency": "USD",
+    "description": "Totally restored with custom paint job.", 
+    "transmission": "manual",
+    "city": "McMinnville",
+    "province": "Oregon",
+    "country": "USA",
+    "location": 
+    {
+      "lat": 45.224954, 
+      "long": -123.223067
+    }
+  }
+}

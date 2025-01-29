@@ -1,0 +1,87 @@
+<export><workspace name="Advanced Word Search"><query name="Filtered vs Unfiltered" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * Both filtered and unfiltered searches will use indexes and term lists
+ * to identify candidates/results.
+ *
+ * Filtered goes a step beyond and opens each candidate to confirm / 
+ * "double-check" for accuracy.
+ *
+ * Take note of the number of results.
+ *
+ * Back at your Lab Guide, look at "Enabling trailing wildcard search"
+ * to enable the right term list to enable unfiltered search to become
+ * accurate as well.
+ */
+'use strict';
+
+let result = {
+  'filtered' : fn.count(cts.search(cts.wordQuery('account*', ['wildcarded']))),
+  'UNfiltered' : cts.estimate(cts.wordQuery('account*', ['wildcarded']))
+}
+result</query><query name="Pagination and filtering" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * This tab highlights how filtered search can be detrimental to a paginated app.
+ * Filtered search will double check and guarantee accuracy, thus would need to 
+ * open all documents prior to your "page jump".
+ */
+'use strict';
+
+function getMeters(filterFlag) {
+  return fn.head(xdmp.invokeFunction(
+    function(){
+      let items = cts.search(cts.wordQuery('account*', ['wildcarded']), filterFlag)
+      // jump to page 2
+      items = fn.subsequence(items, 11, 10)
+      // this will force a read of the results
+      items.toArray()
+      // return the statistics we are looking for
+      return xdmp.queryMeters()
+    }
+  ))
+}
+
+let results = {
+  'filtered' : getMeters('filtered').documents.length,
+  'unfiltered' : getMeters('unfiltered').documents.length
+}
+results</query><query name="Stemming" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="1">/*
+ * This is focused on how stemming works. By default, the english
+ * language is selected. Stemming depends on the actuve language and the 
+ * part of speech.
+ *
+ * Other language require additional license. The function themselves 
+ * will simply succeed with the input as the response if no suitable
+ * license is available.
+ */
+'use strict';
+
+let result = {
+  'english verb' : cts.stem('is'),
+  'english noun' : cts.stem('castles'),
+  'japanese verb' : cts.stem('行進', 'ja'),
+  'japanese noun' : cts.stem('日々', 'ja')
+}
+result</query><query name="Proximity" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="star-wars-content" server-name="star-wars" mode="javascript" optimize="1">/*
+ * Similar to the "Filtered vs Unfiltered" tab, this tab shows how
+ * accuracy is highly dependent on either the indexes that are available
+ * or on filtering (slow)
+ *
+ * Back at your Lab Guide, look at "Enabling word positions"
+ * to enable the right term list to enable unfiltered search to become
+ * accurate as well.
+ */
+'use strict';
+
+let query = cts.nearQuery(
+  [
+    cts.wordQuery('rebel'),
+    cts.wordQuery('empire')
+  ]
+  , 10)
+let result = {
+  'filtered' : fn.count(cts.search(query)),
+  'UNfiltered' : cts.estimate(query),
+  'accurate' : cts.search(query),
+  'candidates' : cts.search(query, 'unfiltered')
+}
+result
+
+</query></workspace></export>

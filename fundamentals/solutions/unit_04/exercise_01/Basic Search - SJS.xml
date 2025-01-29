@@ -1,0 +1,100 @@
+<export><workspace name="Basic Search"><query name="Terms" focus="true" listorder="1" taborder="1" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * This tab highlights how Marklogic identifies terms for a given string.
+ */
+'use strict';
+
+cts.tokenize("Jack the giant-slayer is running towards the castle.")</query><query name="URI Lexicon" focus="false" listorder="2" taborder="2" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how the URI lexicon keeps track of 
+ * which document contains which word.
+ */
+'use strict';
+
+cts.uris('', null, cts.wordQuery('accounting'))</query><query name="JSON data type" focus="false" listorder="3" taborder="3" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how JSON Documents are data type aware for primitives.
+ * This is in contrast to XML Documents where everything is a string.
+ */
+'use strict';
+
+function getCount(propertyName, value){
+  return fn.count(
+    cts.uris('', [], cts.andQuery([
+      cts.documentQuery('/sample-data-types.json'),
+      cts.jsonPropertyValueQuery(propertyName, value)
+    ]))
+  )
+}
+
+let result = {
+  'number will match number' : getCount('decimal', 3.1416),
+  'number will NOT match string' : getCount('decimal', '3.1416'),
+  'boolean will match boolean' : getCount('boolean', true),
+  'boolean will NOT match string' : getCount('boolean', 'true'),
+}
+result</query><query name="AND Query" focus="false" listorder="4" taborder="4" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how to construct an AND query
+ */
+'use strict';
+
+cts.search(
+  cts.andQuery(
+    [
+      cts.wordQuery('accounting'),
+      cts.jsonPropertyValueQuery('zip', '64179')
+    ]
+  )
+)</query><query name="OR Query" focus="false" listorder="5" taborder="5" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how to construct an OR query
+ */
+'use strict';
+
+fn.subsequence(
+  cts.search(
+    cts.orQuery(
+      [
+        cts.wordQuery('accounting'),
+        cts.jsonPropertyValueQuery('zip', '64179')
+      ]
+    )
+  )
+  ,
+  1, 10
+)</query><query name="NOT Query" focus="false" listorder="6" taborder="6" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how to construct a NOT query
+ */
+'use strict';
+
+fn.subsequence(
+  cts.search(
+    cts.notQuery(
+      cts.wordQuery('account')
+    )
+  )
+  ,
+  1, 10
+)
+</query><query name="Property name query" focus="false" listorder="7" taborder="7" active="true" database="" server="" database-name="" server-name="" mode="javascript" optimize="">/*
+ * This tab shows how to use property names for your query.
+ */
+'use strict';
+
+cts.search(
+  cts.jsonPropertyScopeQuery('decimal', cts.trueQuery())
+)</query><query name="Case sensitivity" focus="false" listorder="8" taborder="8" active="true" database="" server="" database-name="Documents" server-name="App-Services" mode="javascript" optimize="">/*
+ * If all characters on a search are in lower-case, the search will run in
+ * `case-insensitive mode` by default. 
+ *
+ * If the characters on a search are in mixed-case or all upper-case, the
+ * search will run in `case-sensitive mode` by default. 
+ *
+ * Each word query constructor can override this default behavior
+ */
+'use strict';
+
+let result = {
+  'case insensitive' : fn.head(cts.search(cts.wordQuery('accounting'))),
+  'case sensitive' : fn.head(cts.search(cts.wordQuery('ACCOUNTING'))),
+  'override' : fn.head(cts.search(cts.wordQuery('ACCOUNTING', ['case-insensitive'])))
+}
+result
+
+</query></workspace></export>

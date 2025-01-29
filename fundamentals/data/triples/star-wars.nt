@@ -1,0 +1,17 @@
+<http://marklogic.com/mlu/star-wars/resource/Luke_Skywalker> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Mark_Hamill> .
+<http://marklogic.com/mlu/star-wars/resource/Luke_Skywalker> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Aidan_Barton> .
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Harrison_Ford> . 
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Ross_Marquand> . 
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Keith_Ferguson> . 
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Alden_Ehrenreich> . 
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://marklogic.com/mlu/star-wars/ontology/playedBy> <http://marklogic.com/mlu/resource/Michael_Daingerfield> . 
+<http://marklogic.com/mlu/resource/Ross_Marquand> <http://marklogic.com/mlu/ontology/almaMater> <http://marklogic.com/mlu/resource/University_Of_Colorado_Boulder> . 
+<http://marklogic.com/mlu/resource/Keith_Ferguson> <http://marklogic.com/mlu/ontology/almaMater> <http://marklogic.com/mlu/resource/University_Of_The_Pacific> . 
+<http://marklogic.com/mlu/resource/Michael_Daingerfield> <http://marklogic.com/mlu/ontology/almaMater> <http://marklogic.com/mlu/resource/Murray_State_University> . 
+<http://marklogic.com/mlu/resource/Harrison_Ford> <http://marklogic.com/mlu/ontology/birthDate> "1942-07-13"^^<http://www.w3.org/2001/XMLSchema#date> .
+<http://marklogic.com/mlu/resource/Ross_Marquand> <http://marklogic.com/mlu/ontology/birthDate> "1981-08-22"^^<http://www.w3.org/2001/XMLSchema#date> . 
+<http://marklogic.com/mlu/resource/Keith_Ferguson> <http://marklogic.com/mlu/ontology/birthDate> "1972-02-26"^^<http://www.w3.org/2001/XMLSchema#date> . 
+<http://marklogic.com/mlu/resource/Alden_Ehrenreich> <http://marklogic.com/mlu/ontology/birthDate> "1989-11-22"^^<http://www.w3.org/2001/XMLSchema#date> . 
+<http://marklogic.com/mlu/resource/Michael_Daingerfield> <http://marklogic.com/mlu/ontology/birthDate> "1970-10-29"^^<http://www.w3.org/2001/XMLSchema#date> . 
+<http://marklogic.com/mlu/star-wars/resource/Luke_Skywalker> <http://xmlns.com/foaf/0.1/name> "Luke Skywalker" . 
+<http://marklogic.com/mlu/star-wars/resource/Han_Solo> <http://xmlns.com/foaf/0.1/name> "Han Solo" . 
